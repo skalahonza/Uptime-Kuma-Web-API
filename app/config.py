@@ -17,6 +17,7 @@ class Settings(BaseSettings):
         "ACCESS_TOKEN_EXPIRATION", 60 * 24 * 8
     )  # 8 days
     SECRET_KEY: str = os.environ.get("SECRET_KEY", secrets.token_urlsafe(32))
+    API_KEY: str = os.environ.get("API_KEY", "default_api_key")
 
     KUMA_SERVER: str = os.environ.get("KUMA_SERVER")
     KUMA_USERNAME: str = os.environ.get("KUMA_USERNAME")

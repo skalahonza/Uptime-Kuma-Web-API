@@ -1,30 +1,21 @@
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import OAuth2PasswordRequestForm
-from datetime import datetime, timedelta
+from fastapi import APIRouter, HTTPException
+from datetime import datetime
 from uptime_kuma_api import UptimeKumaException, UptimeKumaApi
 
-
-from schemas.jwt import JWToken
-from models.user import UserCreate, Users
-
+from models.user import Users
 from config import settings
-from utils.security import create_access_token
-from utils.deps import authenticate
-from config import logger as logging, settings
-
+from config import logger as logging
 
 router = APIRouter(redirect_slashes=True)
 
+@router.post("/access-token")
+async def login_access_token():
+    try:
+        user = await Users.get_or_none(username="admin")
+        if not user:
+            logging.info("Admin user not found")
+            raise HTTPException(400, {"message": "Admin user not found"})
 
-@router.post("/access-token", response_model = JWToken)
-async def login_access_token(form_data : OAuth2PasswordRequestForm = Depends()):
-    user_obj = await Users.get_or_none(username=form_data.username)
-    user = authenticate(user_obj, form_data.password)
-    if not user:
-        logging.info("Incorrect username or password")
-        raise HTTPException(400, {"message": "Incorrect username or password"})
-
-    try :
         user.last_visit = datetime.now()
         await user.save(update_fields=["last_visit"])
 
@@ -34,14 +25,13 @@ async def login_access_token(form_data : OAuth2PasswordRequestForm = Depends()):
 
         logging.info("Logged in to UptimeKuma")
 
-        access_token_expires = timedelta(minutes = settings.ACCESS_TOKEN_EXPIRE)
-        response = {"access_token":create_access_token(resp["token"], access_token_expires),"token_type": "bearer"}
+        response = {"message": "Logged in successfully"}
 
-    except UptimeKumaException as e :
+    except UptimeKumaException as e:
         logging.info(e)
         raise HTTPException(400, {"message": "Incorrect Kuma credentials"})
     except Exception as e:
         logging.fatal(e)
         raise HTTPException(400, str(e))
 
-    return JWToken(**response)
+    return response
