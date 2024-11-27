@@ -21,7 +21,7 @@ You have to define these ENV VARS in order to connect to your KUMA server.
     KUMA_SERVER: The URL of your Uptime Kuma instance. ex: https://uptime.example.com
     KUMA_USERNAME: The username of your Uptime Kuma user
     KUMA_PASSWORD: The password of your Uptime Kuma user
-    ADMIN_PASSWORD: An admin password to access the API
+    API_KEY: A static API key to access the API
 
 #### Optional
 Additional configuration variables available
@@ -72,7 +72,7 @@ services:
       - KUMA_SERVER=http://kuma:3001
       - KUMA_USERNAME=test
       - KUMA_PASSWORD=123test.
-      - ADMIN_PASSWORD=admin
+      - API_KEY=your_api_key
     depends_on:
       - kuma
     ports:
@@ -91,8 +91,8 @@ volumes:
 
 ```bash
 
-    TOKEN=$(curl -X -L 'POST' -H 'Content-Type: application/x-www-form-urlencoded' --data 'username=admin&password=admin' http://127.0.0.1:8000/login/access-token/ | jq -r ".access_token")
+    API_KEY=your_api_key
 
-    curl -L -H 'Accept: application/json' -H "Authorization: Bearer ${TOKEN}" http://127.0.0.1:8000/monitors/
+    curl -L -H 'Accept: application/json' -H "x-api-key: ${API_KEY}" http://127.0.0.1:8000/monitors/
 
 ```
